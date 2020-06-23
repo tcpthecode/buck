@@ -3784,8 +3784,16 @@ public class ProjectGenerator {
                     getHeaderSymlinkTreePath(nativeNode, headerVisibility)));
           });
     } else {
+      // @tucp: Using absolute path instead of relative path for re-compile single file purposed
+      Path basePath = 
+        getFilesystemForTarget(Optional.of(targetNode.getBuildTarget()))
+        .resolve(targetNode.getBuildTarget().getCellRelativeBasePath().getPath());
+
       for (Path headerSymlinkTreePath : collectRecursiveHeaderSymlinkTrees(targetNode)) {
-        builder.add(getHeaderSearchPathFromSymlinkTreeRoot(headerSymlinkTreePath));
+        Path finalPath = basePath.resolve(headerSymlinkTreePath);
+        builder.add(getHeaderSearchPathFromSymlinkTreeRoot(finalPath));
+
+        // builder.add(getHeaderSearchPathFromSymlinkTreeRoot(headerSymlinkTreePath));
       }
     }
 
