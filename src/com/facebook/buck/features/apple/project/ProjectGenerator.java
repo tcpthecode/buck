@@ -4811,7 +4811,9 @@ public class ProjectGenerator {
   }
 
   private boolean shouldCopyOutputFile(TargetNode<?> input) {
-    if (input.getDescription() instanceof CxxLibraryDescription
+    if (isStaticFramework(input)) {
+      return false;
+    } else if (input.getDescription() instanceof CxxLibraryDescription
         || input.getDescription() instanceof AppleLibraryDescription) {
       return isLibraryWithSourcesToCompile(input);
     }
@@ -4953,5 +4955,25 @@ public class ProjectGenerator {
 
   private Path getPathToMergedHeaderMap() {
     return getPathToHeaderMapsRoot(Optional.of(workspaceTarget.get())).resolve("pub-hmap");
+  }
+
+  /**
+   * Maintainer: @tucp
+   * Brief: 
+   *  ➤ Updated for specific use cases of our product
+   */
+  private boolean isStaticFramework(TargetNode<?> input) {
+    final ArrayList<Integer> values = new ArrayList<Integer>();
+
+    TargetNodes.castArg(input, PrebuiltAppleFrameworkDescriptionArg.class)
+      .ifPresent(
+        prebuiltFramework -> {
+          if (prebuiltFramework.getConstructorArg().getPreferredLinkage()
+              == NativeLinkableGroup.Linkage.STATIC) {
+                values.add(1);
+          }
+        });
+    
+    return (values.size() > 0);
   }
 }
